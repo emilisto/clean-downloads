@@ -1,25 +1,32 @@
 var restler = require('restler'),
-    optimist = require('optimist'),
-    async = require('async'),
     _ = require('underscore');
 
-var Transmission = function Transmission() {
+var Transmission = module.exports = function Transmission(options) {
+
+  options = _.extend({
+    host: 'localhost:9091'
+  }, options || {});
+
   this.config = {
-    transmissionUrl: 'http://localhost:9091/transmission/rpc',
+    url: options.host + '/transmission/rpc',
     headers: { }
   }
+
 };
 
-Transmission.prototype.makeRequest = function makeRequest(query, cb) {
+Transmission.prototype.makeRequest = function makeRequest(data, callback) {
   var self = this;
   var retries = 0;
 
   var _makeRequest = function() {
-    if(retries > 3) throw "too many failures!";
+    if(retries > 1) {
+      callback(new Error("request failed"));
+      return;
+    }
 
     var req = restler.post(self.config.transmissionUrl, {
       headers: self.config.headers,
-      data: JSON.stringify(query)
+      data: JSON.stringify(data)
     });
 
     req.on('complete', function(data, response) {
@@ -29,6 +36,7 @@ Transmission.prototype.makeRequest = function makeRequest(query, cb) {
           if(session_id) {
             self.config.headers['x-transmission-session-id'] = session_id;
             retries += 1;
+
             _makeRequest();
           } else {
             cb("didnt get a session id");
@@ -43,24 +51,20 @@ Transmission.prototype.makeRequest = function makeRequest(query, cb) {
   };
 
   _makeRequest();
+
 };
 
 Transmission.prototype.getTorrents = function getTorrents(callback) {
+
   this.makeRequest({
     'method': 'torrent-get',
     'arguments': {
       'fields': [ 'downloadDir', 'isFinished', 'files', 'percentDone', 'haveUnchecked', 'id' ]
     }
   }, function(err, data) {
-    // Check errors
-    if(err) {
-      console.log('error: ' + err);
-      return;
-    }
 
-    if(data.result !== 'success') {
-      console.log('error: ');
-      console.log(data);
+    if(err || data.result !== 'success') {
+      callback(err || new Error(data));
       return;
     }
 
@@ -82,7 +86,6 @@ Transmission.prototype.getTorrents = function getTorrents(callback) {
 
     callback(null, directories);
 
-    // TODO: filter out files that are not finished
   });
 };
 
@@ -90,27 +93,20 @@ Transmission.prototype.removeTorrents = function removeTorrent(torrents, callbac
 
   var ids = _.pluck(torrents, 'id');
 
-  if(ids === 0) {
-    callback("no ids specified");
+  if(!ids || ids.length) {
+    callback(new Error("no ids specified"));
     return;
   }
 
   this.makeRequest({
-    // 'method': 'torrent-remove',
-    'method': 'torrent-stop',
+    'method': 'torrent-remove',
     'arguments': {
       ids: ids
     }
   }, function(err, data) {
-    // Check errors
-    if(err) {
-      console.log('error: ' + err);
-      return;
-    }
 
-    if(data.result !== 'success') {
-      console.log('error: ');
-      console.log(data);
+    if(err || data.result !== 'success') {
+      callback(err || new Error(data));
       return;
     }
 

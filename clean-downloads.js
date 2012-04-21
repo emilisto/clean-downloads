@@ -58,6 +58,13 @@ async.parallel({
   }
 }, function(err, result) {
 
+  //////////////////////
+  // Filter out files to move
+  //
+  //    - Only finished transfers, that don't have any unchecked files
+  //    - All files that are not in Transmission
+  //
+
   var files = result.files;
   var torrents = result.torrents;
 
@@ -85,9 +92,13 @@ async.parallel({
     });
 
   async.series([
+
+    // 3. Remove them from Transmission
     function removeTorrents(callback) {
       transmission.removeTorrents(torrentsToRemove, callback);
     },
+
+    // 4. Move to a new directory
     function moveFiles(callback) {
       var pathArgument = _.map(toMoveFilenames, function(filename) {
         return '"' + basedir + '/' + filename + '"';
@@ -102,12 +113,10 @@ async.parallel({
     console.log('Moved the following files to ' + movedir + ':');
     console.log(toMoveFilenames);
   });
-  // 3. Match torrents with files from 1 and remove them from Transmission
 
 });
 
 
 
-// 4. Move to a new directory
 // 5. Mount storage volume and move it over
 
