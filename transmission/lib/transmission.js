@@ -8,7 +8,7 @@ var Transmission = module.exports = function Transmission(options) {
   }, options || {});
 
   this.config = {
-    url: options.host + '/transmission/rpc',
+    url: 'http://' + options.host + '/transmission/rpc',
     headers: { }
   }
 
@@ -24,7 +24,7 @@ Transmission.prototype.makeRequest = function makeRequest(data, callback) {
       return;
     }
 
-    var req = restler.post(self.config.transmissionUrl, {
+    var req = restler.post(self.config.url, {
       headers: self.config.headers,
       data: JSON.stringify(data)
     });
@@ -39,11 +39,11 @@ Transmission.prototype.makeRequest = function makeRequest(data, callback) {
 
             _makeRequest();
           } else {
-            cb("didnt get a session id");
+            callback(new Error("didnt get a session id"));
           }
           break;
         default:
-          cb(null, data);
+          callback(null, data);
         break;
       }
     });
