@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 var restler = require('restler'),
-    optimist = require('optimist'),
     async = require('async'),
     _ = require('underscore'),
     exec = require('child_process').exec,
@@ -17,6 +16,7 @@ var movedir = HOME + '/totransfer';
 var transmission = new Transmission();
 
 async.parallel({
+
   // 1. Find list of files to remove $(du -sm $DIR | sort -n)
   //
   //      - find all files > 100MB
@@ -24,7 +24,6 @@ async.parallel({
   //
   'files': function listDir(callback) {
     var minSizeM = 500;
-
 
     // Remove trailing slash
     basedir = _.str.rstrip(basedir, '/');
@@ -56,6 +55,7 @@ async.parallel({
       callback(err, torrents);
     });
   }
+
 }, function(err, result) {
 
   //////////////////////
@@ -69,7 +69,7 @@ async.parallel({
   var torrents = result.torrents;
 
   // Ignore files that are still being transferred
-  var ignoreFn = function ignore(torrent) {
+  var ignoreFn = function ignoreFn(torrent) {
     return torrent.haveUnchecked > 0 || !torrent.isFinished;
   };
 
@@ -115,8 +115,6 @@ async.parallel({
   });
 
 });
-
-
 
 // 5. Mount storage volume and move it over
 
