@@ -32,7 +32,7 @@ async.parallel({
       "du -sm %s/* | sort -n | awk '{ if($1 > %d) {print $0} }'",
       basedir, minSizeM
     );
-    var command = 'du -sm ' + basedir + "/* | sort -n | awk '{ if($1 > " + minSizeM + ") {print $0} }'";
+
     exec(command, function(err, data) {
 
       var files = _(data.split('\n'))
