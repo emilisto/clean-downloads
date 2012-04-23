@@ -9,6 +9,7 @@ latter case the files are kept in the Downloads folder.
 
 ## Usage
 `clean-downloads.js` - moves files to `~/totransfer`
+
 `movefiles.sh` transfers the files to another volume, in my case mounts
 a second harddrive.
 
