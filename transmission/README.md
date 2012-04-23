@@ -19,3 +19,5 @@ transmission.getTorrents(function(err, torrents) {
 });
 
 ```
+
+https://trac.transmissionbt.com/browser/trunk/extras/rpc-spec.txt

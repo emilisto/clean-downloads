@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/local/bin/node
 
 var restler = require('restler'),
     async = require('async'),
@@ -28,6 +28,10 @@ async.parallel({
     // Remove trailing slash
     basedir = _.str.rstrip(basedir, '/');
 
+    var command = _.str.sprintf(
+      "du -sm %s/* | sort -n | awk '{ if($1 > %d) {print $0} }'",
+      basedir, minSizeM
+    );
     var command = 'du -sm ' + basedir + "/* | sort -n | awk '{ if($1 > " + minSizeM + ") {print $0} }'";
     exec(command, function(err, data) {
 
@@ -95,6 +99,7 @@ async.parallel({
 
     // 3. Remove them from Transmission
     function removeTorrents(callback) {
+      console.log(torrentsToRemove);
       transmission.removeTorrents(torrentsToRemove, callback);
     },
 
@@ -104,14 +109,22 @@ async.parallel({
         return '"' + basedir + '/' + filename + '"';
       }).join(' ');
       var command = 'mv ' + pathArgument + ' ' + movedir;
+
+      console.log(command);
+
       exec(command, function(err, data) {
         callback(null);
       });
 
     }
   ], function(err, data) {
-    console.log('Moved the following files to ' + movedir + ':');
-    console.log(toMoveFilenames);
+    if(err) {
+      console.log('error!');
+      console.log(err);
+    } else {
+      console.log('Moved the following files to ' + movedir + ':');
+      console.log(toMoveFilenames);
+    }
   });
 
 });

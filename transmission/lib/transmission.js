@@ -93,7 +93,7 @@ Transmission.prototype.removeTorrents = function removeTorrent(torrents, callbac
 
   var ids = _.pluck(torrents, 'id');
 
-  if(!ids || ids.length) {
+  if(!ids || !ids.length) {
     callback(new Error("no ids specified"));
     return;
   }
